@@ -100,7 +100,7 @@ class Loop {
     }
 
     public start(): void {
-        this.canvas.getContext().fillStyle = 'rgba(255,255,255,0.8)';
+        this.canvas.getContext().fillStyle = 'rgba(255,255,255,0.7)';
         this.canvas.getContext().fillRect(0,0, this.canvas.getWidth(), this.canvas.getHeight());
 
         for(let ball of this.ballGenerator.getAll()) {
@@ -146,15 +146,15 @@ class BallGenerator {
     }
 
     protected getRandomSize(): number {
-        return this.random(20, 100);
+        return this.random(5, 50);
     }
 
     protected getRandomX(): number {
-        return this.random(100, this.canvas.getWidth());
+        return this.random(50, this.canvas.getWidth() - 50);
     }
 
     protected getRandomY(): number {
-        return this.random(100, this.canvas.getHeight());
+        return this.random(50, this.canvas.getHeight() - 50);
     }
 
     protected random(min: number, max: number): number {
@@ -164,7 +164,7 @@ class BallGenerator {
 
 function init(): void {
     let canvas = new Canvas("my-canvas");
-    let ballGenerator = new BallGenerator(canvas, 20);
+    let ballGenerator = new BallGenerator(canvas, 15);
     let loop = new Loop(canvas, ballGenerator.generate());
     loop.start();
 }

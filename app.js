@@ -75,7 +75,7 @@ var Loop = /** @class */ (function () {
         this.ballGenerator = ballGenerator;
     }
     Loop.prototype.start = function () {
-        this.canvas.getContext().fillStyle = 'rgba(255,255,255,0.8)';
+        this.canvas.getContext().fillStyle = 'rgba(255,255,255,0.7)';
         this.canvas.getContext().fillRect(0, 0, this.canvas.getWidth(), this.canvas.getHeight());
         for (var _i = 0, _a = this.ballGenerator.getAll(); _i < _a.length; _i++) {
             var ball = _a[_i];
@@ -112,13 +112,13 @@ var BallGenerator = /** @class */ (function () {
         return pastel;
     };
     BallGenerator.prototype.getRandomSize = function () {
-        return this.random(20, 100);
+        return this.random(5, 50);
     };
     BallGenerator.prototype.getRandomX = function () {
-        return this.random(100, this.canvas.getWidth());
+        return this.random(50, this.canvas.getWidth() - 50);
     };
     BallGenerator.prototype.getRandomY = function () {
-        return this.random(100, this.canvas.getHeight());
+        return this.random(50, this.canvas.getHeight() - 50);
     };
     BallGenerator.prototype.random = function (min, max) {
         return Math.floor(Math.random() * (max - min)) + min;
@@ -127,7 +127,7 @@ var BallGenerator = /** @class */ (function () {
 }());
 function init() {
     var canvas = new Canvas("my-canvas");
-    var ballGenerator = new BallGenerator(canvas, 20);
+    var ballGenerator = new BallGenerator(canvas, 15);
     var loop = new Loop(canvas, ballGenerator.generate());
     loop.start();
 }
