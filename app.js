@@ -70,22 +70,64 @@ var Ball = /** @class */ (function () {
  * Main Loop Class
  */
 var Loop = /** @class */ (function () {
-    function Loop(canvas, ball) {
+    function Loop(canvas, ballGenerator) {
         this.canvas = canvas;
-        this.ball = ball;
+        this.ballGenerator = ballGenerator;
     }
     Loop.prototype.start = function () {
-        this.canvas.getContext().fillStyle = 'rgba(0,0,0,0.25)';
+        this.canvas.getContext().fillStyle = 'rgba(255,255,255,0.8)';
         this.canvas.getContext().fillRect(0, 0, this.canvas.getWidth(), this.canvas.getHeight());
-        this.ball.draw();
-        this.ball.update();
+        for (var _i = 0, _a = this.ballGenerator.getAll(); _i < _a.length; _i++) {
+            var ball = _a[_i];
+            ball.draw();
+            ball.update();
+        }
         requestAnimationFrame(this.start.bind(this));
     };
     return Loop;
 }());
+var BallGenerator = /** @class */ (function () {
+    function BallGenerator(canvas, numberOfBalls) {
+        if (numberOfBalls === void 0) { numberOfBalls = 10; }
+        this.balls = [];
+        this.canvas = canvas;
+        this.numberOfBalls = numberOfBalls;
+    }
+    BallGenerator.prototype.generate = function () {
+        for (var i = 0; i < this.numberOfBalls; i++) {
+            var ball = new Ball(this.canvas, this.getRandomX(), this.getRandomY(), 5, 5, this.getRandomColor(), this.getRandomSize());
+            this.add(ball);
+        }
+        return this;
+    };
+    BallGenerator.prototype.add = function (ball) {
+        this.balls.push(ball);
+    };
+    BallGenerator.prototype.getAll = function () {
+        return this.balls;
+    };
+    BallGenerator.prototype.getRandomColor = function () {
+        var hue = Math.floor(Math.random() * 360);
+        var pastel = 'hsl(' + hue + ', 100%, 87.5%)';
+        return pastel;
+    };
+    BallGenerator.prototype.getRandomSize = function () {
+        return this.random(20, 100);
+    };
+    BallGenerator.prototype.getRandomX = function () {
+        return this.random(100, this.canvas.getWidth());
+    };
+    BallGenerator.prototype.getRandomY = function () {
+        return this.random(100, this.canvas.getHeight());
+    };
+    BallGenerator.prototype.random = function (min, max) {
+        return Math.floor(Math.random() * (max - min)) + min;
+    };
+    return BallGenerator;
+}());
 function init() {
     var canvas = new Canvas("my-canvas");
-    var ball = new Ball(canvas, 100, 100, 6, 6, '#0000ff', 30);
-    var loop = new Loop(canvas, ball);
+    var ballGenerator = new BallGenerator(canvas, 20);
+    var loop = new Loop(canvas, ballGenerator.generate());
     loop.start();
 }

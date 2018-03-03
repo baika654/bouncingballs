@@ -12,23 +12,23 @@ class Canvas {
         window.addEventListener('resize', this.resizeCanvas.bind(this), false);
     }
 
-    getEl(): HTMLCanvasElement {
+    public getEl(): HTMLCanvasElement {
         return <HTMLCanvasElement> this.canvas;
     }
 
-    getContext(): CanvasRenderingContext2D {
+    public getContext(): CanvasRenderingContext2D {
         return <CanvasRenderingContext2D> this.canvas.getContext('2d');
     }
 
-    getWidth(): number {
+    public getWidth(): number {
         return this.canvas.width;
     }
 
-    getHeight(): number {
+    public getHeight(): number {
         return this.canvas.height;
     }
 
-    resizeCanvas(): void {
+    protected resizeCanvas(): void {
         this.canvas.width = document.body.clientWidth;
         this.canvas.height = document.body.clientHeight;
     }
@@ -56,7 +56,7 @@ class Ball {
         this.size = size;
     }
 
-    draw(): void {
+    public draw(): void {
         let context = this.canvas.getContext();
 
         context.beginPath();
@@ -65,7 +65,7 @@ class Ball {
         context.fill();
     }
 
-    update(): void {
+    public update(): void {
         if((this.x + this.size) >= this.canvas.getWidth()) {
             this.velX = -(this.velX);
         }
@@ -92,28 +92,80 @@ class Ball {
  */
 class Loop {
     protected canvas: Canvas;
-    protected ball: Ball;
+    protected ballGenerator: BallGenerator;
 
-    constructor(canvas: Canvas, ball: Ball) {
+    constructor(canvas: Canvas, ballGenerator: BallGenerator) {
         this.canvas = canvas;
-        this.ball = ball;
+        this.ballGenerator = ballGenerator;
     }
 
-    start(): void {
-        this.canvas.getContext().fillStyle = 'rgba(0,0,0,0.25)';
+    public start(): void {
+        this.canvas.getContext().fillStyle = 'rgba(255,255,255,0.8)';
         this.canvas.getContext().fillRect(0,0, this.canvas.getWidth(), this.canvas.getHeight());
 
-        this.ball.draw();
-        this.ball.update();
+        for(let ball of this.ballGenerator.getAll()) {
+            ball.draw();
+            ball.update();
+        }
 
         requestAnimationFrame(this.start.bind(this));
     }
 }
 
+class BallGenerator {
+    protected canvas: Canvas;
+    protected balls: Ball[] = [];
+    protected numberOfBalls: number;
+
+    constructor(canvas: Canvas, numberOfBalls: number = 10) {
+        this.canvas = canvas;
+        this.numberOfBalls = numberOfBalls;
+    }
+
+    public generate(): BallGenerator {
+        for(let i = 0; i < this.numberOfBalls; i++) {
+            let ball = new Ball(this.canvas, this.getRandomX(), this.getRandomY(), 5, 5, this.getRandomColor(), this.getRandomSize());
+            this.add(ball);
+        }
+
+        return this;
+    }
+
+    protected add(ball: Ball): void {
+        this.balls.push(ball);
+    }
+
+    public getAll(): Ball[] {
+        return this.balls;
+    }
+
+    protected getRandomColor(): string {
+        let hue = Math.floor(Math.random() * 360);
+        let pastel = 'hsl(' + hue + ', 100%, 87.5%)';
+        return pastel;
+    }
+
+    protected getRandomSize(): number {
+        return this.random(20, 100);
+    }
+
+    protected getRandomX(): number {
+        return this.random(100, this.canvas.getWidth());
+    }
+
+    protected getRandomY(): number {
+        return this.random(100, this.canvas.getHeight());
+    }
+
+    protected random(min: number, max: number): number {
+        return Math.floor( Math.random() * (max - min) ) + min;
+    }
+}
+
 function init(): void {
     let canvas = new Canvas("my-canvas");
-    let ball = new Ball(canvas, 100, 100, 6, 6, '#0000ff', 30);
-    let loop = new Loop(canvas, ball);
+    let ballGenerator = new BallGenerator(canvas, 20);
+    let loop = new Loop(canvas, ballGenerator.generate());
     loop.start();
 }
 
