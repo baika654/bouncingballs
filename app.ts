@@ -34,10 +34,15 @@ class Canvas {
     }
 }
 
+interface Loopable {
+    draw(): void;
+    update(): void;
+}
+
 /**
  * Ball Wrapper Class
  */
-class Ball {
+class Ball implements Loopable {
     protected canvas: Canvas;
     protected x: number;
     protected y: number;
