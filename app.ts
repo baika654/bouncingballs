@@ -129,7 +129,10 @@ class BallGenerator {
 
     public generate(): BallGenerator {
         for(let i = 0; i < this.numberOfBalls; i++) {
-            let ball = new Ball(this.canvas, this.getRandomX(), this.getRandomY(), 5, 5, this.getRandomColor(), this.getRandomSize());
+            let velocity: number = this.getRandomVelocity();
+            let size: number = this.getRandomSize();
+            /** init a new ball */
+            let ball = new Ball(this.canvas, this.getRandomX(size), this.getRandomY(size), velocity, velocity, this.getRandomColor(), size);
             this.add(ball);
         }
 
@@ -150,16 +153,20 @@ class BallGenerator {
         return pastel;
     }
 
+    protected getRandomVelocity(): number {
+        return this.random(2, 4);
+    }
+
     protected getRandomSize(): number {
-        return this.random(5, 50);
+        return this.random(5, 60);
     }
 
-    protected getRandomX(): number {
-        return this.random(50, this.canvas.getWidth() - 50);
+    protected getRandomX(size: number): number {
+        return this.random(size, this.canvas.getWidth() - size);
     }
 
-    protected getRandomY(): number {
-        return this.random(50, this.canvas.getHeight() - 50);
+    protected getRandomY(size: number): number {
+        return this.random(size, this.canvas.getHeight() - size);
     }
 
     protected random(min: number, max: number): number {
@@ -169,7 +176,7 @@ class BallGenerator {
 
 function init(): void {
     let canvas = new Canvas("my-canvas");
-    let ballGenerator = new BallGenerator(canvas, 15);
+    let ballGenerator = new BallGenerator(canvas, 40);
     let loop = new Loop(canvas, ballGenerator.generate());
     loop.start();
 }
