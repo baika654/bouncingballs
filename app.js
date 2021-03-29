@@ -244,6 +244,17 @@ var Loop = /** @class */ (function () {
     Loop.prototype.start = function () {
         this.canvas.getContext().fillStyle = 'rgba(255,255,255,0.7)';
         this.canvas.getContext().fillRect(0, 0, this.canvas.getWidth(), this.canvas.getHeight());
+        var boxHeight = (this.canvas.getHeight() - 300) / 3;
+        var ctx = this.canvas.getContext();
+        ctx.beginPath;
+        ctx.rect((this.canvas.getWidth() / 2) - 75, 0, 150, boxHeight);
+        ctx.stroke();
+        ctx.beginPath;
+        ctx.rect((this.canvas.getWidth() / 2) - 75, 150 + boxHeight, 150, boxHeight);
+        ctx.stroke();
+        ctx.beginPath;
+        ctx.rect((this.canvas.getWidth() / 2) - 75, 300 + (2 * boxHeight), 150, boxHeight);
+        ctx.stroke();
         for (var _i = 0, _a = this.ballGenerator.getAll(); _i < _a.length; _i++) {
             var ball = _a[_i];
             ball.draw();
@@ -267,6 +278,22 @@ var Loop = /** @class */ (function () {
             }
             if ((allBalls[i].getYpos() - allBalls[i].getSize()) <= 0) {
                 allBalls[i].setVelY(-allBalls[i].getVelY());
+            }
+            if (((allBalls[i].getXpos() + allBalls[i].getSize()) >= (this.canvas.getWidth() / 2) - 75) && ((allBalls[i].getXpos() - allBalls[i].getSize()) <= (this.canvas.getWidth() / 2) + 75)) {
+                if (((allBalls[i].getYpos() - allBalls[i].getSize()) >= (this.canvas.getHeight() - 300) / 3) && ((allBalls[i].getYpos() + allBalls[i].getSize()) <= ((this.canvas.getHeight() - 300) / 3) + 150)) {
+                    //console.log("Ball coming through");
+                    if ((allBalls[i].getYpos() - allBalls[i].getSize()) <= (this.canvas.getHeight() - 300) / 3) {
+                        console.log("ball going up into SIL");
+                        allBalls[i].setYpos(((this.canvas.getHeight() - 300) / 3) + allBalls[i].getSize());
+                        allBalls[i].setVelY(-allBalls[i].getVelY());
+                    }
+                    if ((allBalls[i].getYpos() + allBalls[i].getSize()) >= ((this.canvas.getHeight() - 300) / 3) + 150) {
+                        allBalls[i].setVelY(-allBalls[i].getVelY());
+                    }
+                }
+                else {
+                    allBalls[i].setVelX(-allBalls[i].getVelX());
+                }
             }
             allBalls[i].setXpos(allBalls[i].getVelX() + allBalls[i].getXpos());
             allBalls[i].setYpos(allBalls[i].getVelY() + allBalls[i].getYpos());
@@ -353,7 +380,7 @@ var BallGenerator = /** @class */ (function () {
     BallGenerator.prototype.createValidBall = function () {
         var velocity = this.getRandomVelocity();
         var size = 50; //this.getRandomSize();
-        var ball = new Ball(this.canvas, this.getRandomX(size), this.getRandomY(size), velocity, velocity, this.getRandomColor(), size, false);
+        var ball = new Ball(this.canvas, this.getRandomX(size), this.getRandomY(size), velocity * (Math.random() < 0.5 ? -1 : 1), velocity * (Math.random() < 0.5 ? -1 : 1), this.getRandomColor(), size, false);
         if (this.balls.length > 0) {
             for (var i = 0; i < this.balls.length; i++) {
                 if (ball.getUUID() !== this.balls[i].getUUID()) {
@@ -416,7 +443,7 @@ var BallGenerator = /** @class */ (function () {
 }());
 function init() {
     var canvas = new Canvas("my-canvas");
-    var ballGenerator = new BallGenerator(canvas, 60);
+    var ballGenerator = new BallGenerator(canvas, 5);
     var loop = new Loop(canvas, ballGenerator.generate());
     loop.start();
 }

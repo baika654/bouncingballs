@@ -309,7 +309,18 @@ class Loop {
     public start(): void {
         this.canvas.getContext().fillStyle = 'rgba(255,255,255,0.7)';
         this.canvas.getContext().fillRect(0,0, this.canvas.getWidth(), this.canvas.getHeight());
-        
+        let boxHeight:number = (this.canvas.getHeight()-300)/3;
+        let ctx = this.canvas.getContext();
+        ctx.beginPath;
+        ctx.rect((this.canvas.getWidth()/2)-75,0,150,boxHeight);
+        ctx.stroke();
+        ctx.beginPath;
+        ctx.rect((this.canvas.getWidth()/2)-75,150+boxHeight,150,boxHeight);
+        ctx.stroke();
+        ctx.beginPath;
+        ctx.rect((this.canvas.getWidth()/2)-75,300+(2*boxHeight),150,boxHeight);
+        ctx.stroke();
+
 
         for(let ball of this.ballGenerator.getAll()) {
             ball.draw();
@@ -339,6 +350,24 @@ class Loop {
 
             if((allBalls[i].getYpos() - allBalls[i].getSize()) <= 0) {
                 allBalls[i].setVelY(-allBalls[i].getVelY());
+            }
+
+            if (((allBalls[i].getXpos() + allBalls[i].getSize()) >= (this.canvas.getWidth()/2)-75) && ((allBalls[i].getXpos() - allBalls[i].getSize()) <= (this.canvas.getWidth()/2)+75)) {
+                if (((allBalls[i].getYpos() - allBalls[i].getSize()) >= (this.canvas.getHeight()-300)/3)&& ((allBalls[i].getYpos() + allBalls[i].getSize()) <= ((this.canvas.getHeight()-300)/3)+150)) {
+                    //console.log("Ball coming through");
+                    if((allBalls[i].getYpos() - allBalls[i].getSize()) <= (this.canvas.getHeight()-300)/3) {
+                        console.log("ball going up into SIL");
+                        allBalls[i].setYpos(((this.canvas.getHeight()-300)/3)+allBalls[i].getSize());
+                        allBalls[i].setVelY(-allBalls[i].getVelY());
+                    }
+                    if((allBalls[i].getYpos() + allBalls[i].getSize()) >= ((this.canvas.getHeight()-300)/3) +150) {
+                        allBalls[i].setVelY(-allBalls[i].getVelY());
+                    }
+
+                } else {
+                    allBalls[i].setVelX(-allBalls[i].getVelX());
+                }
+
             }
 
             allBalls[i].setXpos(allBalls[i].getVelX() + allBalls[i].getXpos());
@@ -436,7 +465,7 @@ class BallGenerator {
     public createValidBall(): Ball {
         let velocity: number = this.getRandomVelocity();
         let size: number = 50; //this.getRandomSize();
-        let ball = new Ball(this.canvas, this.getRandomX(size), this.getRandomY(size), velocity, velocity, this.getRandomColor(), size, false);
+        let ball = new Ball(this.canvas, this.getRandomX(size), this.getRandomY(size), velocity*(Math.random() < 0.5 ? -1:1 ), velocity*(Math.random() < 0.5 ? -1:1 ), this.getRandomColor(), size, false);
         if (this.balls.length>0) {
             for (let i=0; i < this.balls.length; i++) {
                 if (ball.getUUID()!==this.balls[i].getUUID()) {
@@ -512,7 +541,7 @@ class BallGenerator {
 
 function init(): void {
     let canvas = new Canvas("my-canvas");
-    let ballGenerator = new BallGenerator(canvas, 60);
+    let ballGenerator = new BallGenerator(canvas, 5);
     let loop = new Loop(canvas, ballGenerator.generate());
     loop.start();
 }
