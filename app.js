@@ -28,6 +28,26 @@ var Canvas = /** @class */ (function () {
     };
     return Canvas;
 }());
+var Square = /** @class */ (function () {
+    function Square(canvas, x, y, sqHeight, sqWidth, color) {
+        this.canvas = canvas;
+        this.x = x;
+        this.y = y;
+        this.sqHeight = sqHeight;
+        this.sqWidth = sqWidth;
+        this.color = color;
+    }
+    Square.prototype.draw = function () {
+        var context = this.canvas.getContext();
+        context.beginPath();
+        context.fillStyle = this.color;
+        context.rect(this.x, this.y, this.sqWidth, this.sqHeight);
+        context.stroke();
+    };
+    Square.prototype.update = function () {
+    };
+    return Square;
+}());
 /**
  * Ball Wrapper Class
  */
@@ -281,7 +301,7 @@ var Loop = /** @class */ (function () {
             }
             if (((allBalls[i].getXpos() + allBalls[i].getSize()) >= (this.canvas.getWidth() / 2) - 75) && ((allBalls[i].getXpos() - allBalls[i].getSize()) <= (this.canvas.getWidth() / 2) + 75)) {
                 if (((allBalls[i].getYpos() - allBalls[i].getSize()) >= (this.canvas.getHeight() - 300) / 3) && ((allBalls[i].getYpos() + allBalls[i].getSize()) <= ((this.canvas.getHeight() - 300) / 3) + 150)) {
-                    //console.log("Ball coming through");
+                    console.log("Ball coming through");
                     if ((allBalls[i].getYpos() - allBalls[i].getSize()) <= (this.canvas.getHeight() - 300) / 3) {
                         console.log("ball going up into SIL");
                         allBalls[i].setYpos(((this.canvas.getHeight() - 300) / 3) + allBalls[i].getSize());
@@ -293,6 +313,9 @@ var Loop = /** @class */ (function () {
                 }
                 else {
                     allBalls[i].setVelX(-allBalls[i].getVelX());
+                    if ((allBalls[i].getXpos() + allBalls[i].getSize()) <= (this.canvas.getWidth() / 2)) {
+                        allBalls[i].setXpos((((this.canvas.getWidth() / 2) - 75) - allBalls[i].getSize()));
+                    }
                 }
             }
             allBalls[i].setXpos(allBalls[i].getVelX() + allBalls[i].getXpos());
@@ -300,7 +323,7 @@ var Loop = /** @class */ (function () {
         }
     };
     Loop.prototype.update = function (allBalls) {
-        console.log("Started update");
+        //console.log("Started update");
         for (var i = 0; i < allBalls.length; i++) {
             for (var j = i + 1; j < allBalls.length; j++) {
                 if (allBalls[i].getUUID() !== allBalls[j].getUUID()) {
@@ -393,7 +416,7 @@ var BallGenerator = /** @class */ (function () {
                     }
                 }
                 if (i == this.balls.length - 1) {
-                    console.log("i loop count = ", i);
+                    //console.log("i loop count = ", i);
                 }
             }
         }

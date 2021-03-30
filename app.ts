@@ -1,3 +1,6 @@
+// http://www.jeffreythompson.org/collision-detection/circle-rect.php
+
+
 /**
  * Canvas Wrapper Class
  */
@@ -38,6 +41,41 @@ interface Loopable {
     draw(): void;
     update(): void;
 }
+
+class Square implements Loopable {
+    protected canvas: Canvas;
+    protected x: number;
+    protected y: number;
+    protected sqHeight: number;
+    protected sqWidth: number;
+    protected color: string;
+    
+
+    constructor(canvas: Canvas, x: number, y: number, sqHeight: number, sqWidth: number, color: string) {
+        this.canvas = canvas;
+        this.x = x;
+        this.y = y;
+        this.sqHeight = sqHeight;
+        this.sqWidth = sqWidth;
+        this.color = color;
+        
+    }
+
+    public draw(): void {
+        let context = this.canvas.getContext();
+
+        context.beginPath();
+        context.fillStyle = this.color;
+        context.rect(this.x, this.y, this.sqWidth, this.sqHeight);
+        context.stroke();
+        
+    }
+
+    public update(): void {
+
+    }
+}
+
 
 /**
  * Ball Wrapper Class
@@ -354,7 +392,7 @@ class Loop {
 
             if (((allBalls[i].getXpos() + allBalls[i].getSize()) >= (this.canvas.getWidth()/2)-75) && ((allBalls[i].getXpos() - allBalls[i].getSize()) <= (this.canvas.getWidth()/2)+75)) {
                 if (((allBalls[i].getYpos() - allBalls[i].getSize()) >= (this.canvas.getHeight()-300)/3)&& ((allBalls[i].getYpos() + allBalls[i].getSize()) <= ((this.canvas.getHeight()-300)/3)+150)) {
-                    //console.log("Ball coming through");
+                    console.log("Ball coming through");
                     if((allBalls[i].getYpos() - allBalls[i].getSize()) <= (this.canvas.getHeight()-300)/3) {
                         console.log("ball going up into SIL");
                         allBalls[i].setYpos(((this.canvas.getHeight()-300)/3)+allBalls[i].getSize());
@@ -366,6 +404,9 @@ class Loop {
 
                 } else {
                     allBalls[i].setVelX(-allBalls[i].getVelX());
+                    if ((allBalls[i].getXpos() + allBalls[i].getSize()) <= (this.canvas.getWidth()/2)) {
+                        allBalls[i].setXpos((((this.canvas.getWidth()/2)-75)-allBalls[i].getSize()));                    }
+
                 }
 
             }
@@ -377,7 +418,7 @@ class Loop {
 
     public update(allBalls:Ball[]): void {
         
-        console.log("Started update");
+        //console.log("Started update");
         for (let i=0; i<allBalls.length; i++) {
             for (let j = i+1; j<allBalls.length; j++) {
                 if (allBalls[i].getUUID()!==allBalls[j].getUUID()) {
@@ -479,7 +520,7 @@ class BallGenerator {
 
                 }
                 if (i==this.balls.length-1) {
-                    console.log("i loop count = ", i);
+                    //console.log("i loop count = ", i);
                 }
             }
         }
