@@ -4,7 +4,7 @@
 /**
  * Canvas Wrapper Class
  */
-class Canvas {
+class Canvas1 {
     protected canvas: HTMLCanvasElement;
 
     constructor(private id: string) {
@@ -43,7 +43,7 @@ interface Loopable {
 }
 
 class Square implements Loopable {
-    protected canvas: Canvas;
+    protected canvas: Canvas1;
     protected x: number;
     protected y: number;
     protected sqHeight: number;
@@ -51,7 +51,7 @@ class Square implements Loopable {
     protected color: string;
     
 
-    constructor(canvas: Canvas, x: number, y: number, sqHeight: number, sqWidth: number, color: string) {
+    constructor(canvas: Canvas1, x: number, y: number, sqHeight: number, sqWidth: number, color: string) {
         this.canvas = canvas;
         this.x = x;
         this.y = y;
@@ -81,7 +81,7 @@ class Square implements Loopable {
  * Ball Wrapper Class
  */
 class Ball implements Loopable {
-    protected canvas: Canvas;
+    protected canvas: Canvas1;
     protected x: number;
     protected y: number;
     protected velX: number;
@@ -92,7 +92,7 @@ class Ball implements Loopable {
     protected isValidBall: boolean;
     
 
-    constructor(canvas: Canvas, x: number, y: number, velX: number, velY: number, color: string, size: number, isValidBall: boolean) {
+    constructor(canvas: Canvas1, x: number, y: number, velX: number, velY: number, color: string, size: number, isValidBall: boolean) {
         this.canvas = canvas;
         this.x = x;
         this.y = y;
@@ -336,10 +336,10 @@ public update2(allBalls:Ball[]): void {
  * Main Loop Class
  */
 class Loop {
-    protected canvas: Canvas;
+    protected canvas: Canvas1;
     protected ballGenerator: BallGenerator;
     
-    constructor(canvas: Canvas, ballGenerator: BallGenerator) {
+    constructor(canvas: Canvas1, ballGenerator: BallGenerator) {
         this.canvas = canvas;
         this.ballGenerator = ballGenerator;
     }
@@ -494,11 +494,11 @@ class Loop {
 }
 
 class BallGenerator {
-    protected canvas: Canvas;
+    protected canvas: Canvas1;
     protected balls: Ball[] = [];
     protected numberOfBalls: number;
 
-    constructor(canvas: Canvas, numberOfBalls: number = 10) {
+    constructor(canvas: Canvas1, numberOfBalls: number = 10) {
         this.canvas = canvas;
         this.numberOfBalls = numberOfBalls;
     }
@@ -587,5 +587,5 @@ function init(): void {
     loop.start();
 }
 
-
+//export default Canvas;
 
