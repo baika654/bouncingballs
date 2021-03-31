@@ -49,6 +49,7 @@ interface Loopable {
     setSize(size: number): void; 
     setVelX(velX: number): void;
     setVelY(velY: number): void;
+    setColor(color: string):void;
     getUUID(): string;
 }
 
@@ -84,6 +85,10 @@ class Particle implements Loopable {
           var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
           return v.toString(16);
         });
+    }
+
+    setColor(color: string): void {
+        this.color = color;
     }
 
     setXpos(x: number): void {
@@ -162,33 +167,18 @@ class Particle implements Loopable {
                             this.x = midpointX + normalX * this.size;
                             this.y =(midpointY + normalY * this.size);
 
+                            let dVector:number = (graphicObject[i].getVelX() - this.velX )* normalX;
+                            dVector += (graphicObject[i].getVelY() - this.velY) * normalY;
+                            let dvx:number = dVector * normalX;
+                            let dvy:number = dVector * normalY;
+                            graphicObject[i].setVelX(graphicObject[i].getVelX() - dvx);
+                            graphicObject[i].setVelY(graphicObject[i].getVelY() - dvy);
+                            this.velX=this.velX + dvx;
+                            this.velY=this.velY + dvy;
 
 
 
-                            // Rotate colliding balls
-                            let velXBall1:number = this.velX*Math.cos(diffAngle2)+this.velY*Math.sin(diffAngle2);
-                            let velYBall1:number = this.velY*Math.cos(diffAngle2)-this.velX*Math.sin(diffAngle2);
-                            let velXBall2:number = graphicObject[i].getVelX()*Math.cos(diffAngle2)+graphicObject[i].getVelY()*Math.sin(diffAngle2);
-                            let velYBall2:number = graphicObject[i].getVelY()*Math.cos(diffAngle2)-graphicObject[i].getVelX()*Math.sin(diffAngle2);
-    
-                            let tempVelXBall1:number = velXBall1;
-                            let tempVelXBall2:number = velXBall2;
-    
-                            velXBall1 = -tempVelXBall1;
-                            velXBall2 = -tempVelXBall2;
-                            
-                            this.velX = velXBall1*Math.cos(diffAngle2)-velYBall1*Math.sin(diffAngle2);
-                            this.velY = velYBall1*Math.cos(diffAngle2)+velXBall1*Math.sin(diffAngle2);
-                            graphicObject[i].setVelX(velXBall2*Math.cos(diffAngle2)-velYBall2*Math.sin(diffAngle2));
-                            graphicObject[i].setVelY(velYBall2*Math.cos(diffAngle2)+velXBall2*Math.sin(diffAngle2));
-    
-                            //this.x += this.velX;
-                            //this.y += this.velY;
-                            //graphicObject[i].setXpos(graphicObject[i].getXpos() + graphicObject[i].getVelX());
-                            //graphicObject[i].setYpos(graphicObject[i].getYpos() + graphicObject[i].getVelY());
                            
-                            
-                            console.log("Collision!");
                            
                     }
             }
@@ -249,20 +239,23 @@ class DrawingObjectGenerator {
     protected numberOfDrawingObjects: number;
     protected numberOfParticles: number;
     protected numberOfBlocks: number;
+    protected mode: number;
 
-    constructor(canvas: Canvas, numberOfParticles: number = 10, numberOfBlocks: number = 0) {
+    constructor(canvas: Canvas, numberOfParticles: number = 10, numberOfBlocks: number = 0, mode: number = 0) {
         this.canvas = canvas;
         this.numberOfParticles = numberOfParticles;
         this.numberOfBlocks = numberOfBlocks;
         this.numberOfDrawingObjects = numberOfParticles + numberOfBlocks;
+        this.mode = mode;
     }
 
     public generate(): DrawingObjectGenerator {
         for(let i = 0; i < this.numberOfParticles; i++) {
             let velocity: number = this.getRandomVelocity();
-            let size: number = this.getRandomSize();
+            let size: number = 40; //this.getRandomSize();
             /** init a new particle */
             let particle = new Particle(this.canvas, this.getRandomX(size), this.getRandomY(size), velocity, velocity, this.getRandomColor(), size);
+            if (this.mode==1) this.adjustColor(particle);
             this.add(particle);
         }
 
@@ -273,6 +266,12 @@ class DrawingObjectGenerator {
         this.drawingobjects.push(particle);
     }
 
+    public adjustColor(particle:Particle) {
+        if ((particle.getXpos()<(this.canvas.getWidth()/2))&&(particle.getYpos()<(this.canvas.getHeight()/2))) {
+            particle.setColor('rgb(0,0,255)');
+        }
+    }
+    
     public getAll(): Loopable[] {
         return this.drawingobjects;
     }
@@ -280,11 +279,11 @@ class DrawingObjectGenerator {
     protected getRandomColor(): string {
         let hue = Math.floor(Math.random() * 360);
         let pastel = 'hsl(' + hue + ', 100%, 87.5%)';
-        return pastel;
+        return 'rgb(255,0,0)'; //pastel;
     }
 
     protected getRandomVelocity(): number {
-        return this.random(2, 4);
+        return this.random(2, 6)*(Math.random() > 0.5 ? 1:-1);
     }
 
     protected getRandomSize(): number {
@@ -304,9 +303,9 @@ class DrawingObjectGenerator {
     }
 }
 
-function init2(): void {
+function init2(mode:number): void {
     let canvas = new Canvas("my-canvas");
-    let drawingObjectGenerator = new DrawingObjectGenerator(canvas, 40);
+    let drawingObjectGenerator = new DrawingObjectGenerator(canvas, 120, 0, mode);
     let loop = new Loop(canvas, drawingObjectGenerator.generate());
     loop.start();
 }

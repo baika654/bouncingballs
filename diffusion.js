@@ -48,6 +48,9 @@ class Particle {
             return v.toString(16);
         });
     }
+    setColor(color) {
+        this.color = color;
+    }
     setXpos(x) {
         this.x = x;
     }
@@ -110,24 +113,14 @@ class Particle {
                     graphicObject[i].setYpos(midpointY - normalY * graphicObject[i].getSize());
                     this.x = midpointX + normalX * this.size;
                     this.y = (midpointY + normalY * this.size);
-                    // Rotate colliding balls
-                    let velXBall1 = this.velX * Math.cos(diffAngle2) + this.velY * Math.sin(diffAngle2);
-                    let velYBall1 = this.velY * Math.cos(diffAngle2) - this.velX * Math.sin(diffAngle2);
-                    let velXBall2 = graphicObject[i].getVelX() * Math.cos(diffAngle2) + graphicObject[i].getVelY() * Math.sin(diffAngle2);
-                    let velYBall2 = graphicObject[i].getVelY() * Math.cos(diffAngle2) - graphicObject[i].getVelX() * Math.sin(diffAngle2);
-                    let tempVelXBall1 = velXBall1;
-                    let tempVelXBall2 = velXBall2;
-                    velXBall1 = -tempVelXBall1;
-                    velXBall2 = -tempVelXBall2;
-                    this.velX = velXBall1 * Math.cos(diffAngle2) - velYBall1 * Math.sin(diffAngle2);
-                    this.velY = velYBall1 * Math.cos(diffAngle2) + velXBall1 * Math.sin(diffAngle2);
-                    graphicObject[i].setVelX(velXBall2 * Math.cos(diffAngle2) - velYBall2 * Math.sin(diffAngle2));
-                    graphicObject[i].setVelY(velYBall2 * Math.cos(diffAngle2) + velXBall2 * Math.sin(diffAngle2));
-                    //this.x += this.velX;
-                    //this.y += this.velY;
-                    //graphicObject[i].setXpos(graphicObject[i].getXpos() + graphicObject[i].getVelX());
-                    //graphicObject[i].setYpos(graphicObject[i].getYpos() + graphicObject[i].getVelY());
-                    console.log("Collision!");
+                    let dVector = (graphicObject[i].getVelX() - this.velX) * normalX;
+                    dVector += (graphicObject[i].getVelY() - this.velY) * normalY;
+                    let dvx = dVector * normalX;
+                    let dvy = dVector * normalY;
+                    graphicObject[i].setVelX(graphicObject[i].getVelX() - dvx);
+                    graphicObject[i].setVelY(graphicObject[i].getVelY() - dvy);
+                    this.velX = this.velX + dvx;
+                    this.velY = this.velY + dvy;
                 }
             }
         }
@@ -166,19 +159,22 @@ class Loop {
     }
 }
 class DrawingObjectGenerator {
-    constructor(canvas, numberOfParticles = 10, numberOfBlocks = 0) {
+    constructor(canvas, numberOfParticles = 10, numberOfBlocks = 0, mode = 0) {
         this.drawingobjects = [];
         this.canvas = canvas;
         this.numberOfParticles = numberOfParticles;
         this.numberOfBlocks = numberOfBlocks;
         this.numberOfDrawingObjects = numberOfParticles + numberOfBlocks;
+        this.mode = mode;
     }
     generate() {
         for (let i = 0; i < this.numberOfParticles; i++) {
             let velocity = this.getRandomVelocity();
-            let size = this.getRandomSize();
+            let size = 40; //this.getRandomSize();
             /** init a new particle */
             let particle = new Particle(this.canvas, this.getRandomX(size), this.getRandomY(size), velocity, velocity, this.getRandomColor(), size);
+            if (this.mode == 1)
+                this.adjustColor(particle);
             this.add(particle);
         }
         return this;
@@ -186,16 +182,21 @@ class DrawingObjectGenerator {
     add(particle) {
         this.drawingobjects.push(particle);
     }
+    adjustColor(particle) {
+        if ((particle.getXpos() < (this.canvas.getWidth() / 2)) && (particle.getYpos() < (this.canvas.getHeight() / 2))) {
+            particle.setColor('rgb(0,0,255)');
+        }
+    }
     getAll() {
         return this.drawingobjects;
     }
     getRandomColor() {
         let hue = Math.floor(Math.random() * 360);
         let pastel = 'hsl(' + hue + ', 100%, 87.5%)';
-        return pastel;
+        return 'rgb(255,0,0)'; //pastel;
     }
     getRandomVelocity() {
-        return this.random(2, 4);
+        return this.random(2, 6) * (Math.random() > 0.5 ? 1 : -1);
     }
     getRandomSize() {
         return this.random(5, 60);
@@ -210,9 +211,9 @@ class DrawingObjectGenerator {
         return Math.floor(Math.random() * (max - min)) + min;
     }
 }
-function init2() {
+function init2(mode) {
     let canvas = new Canvas("my-canvas");
-    let drawingObjectGenerator = new DrawingObjectGenerator(canvas, 40);
+    let drawingObjectGenerator = new DrawingObjectGenerator(canvas, 120, 0, mode);
     let loop = new Loop(canvas, drawingObjectGenerator.generate());
     loop.start();
 }
