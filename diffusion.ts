@@ -150,6 +150,7 @@ class Particle implements Loopable {
                     let ballDiff = Math.sqrt(Math.pow(this.x-graphicObject[i].getXpos(),2)+Math.pow(this.y-graphicObject[i].getYpos(),2));
                     
                     if (ballDiff<(this.size+graphicObject[i].getSize())) {
+                            if (graphicObject[i] instanceof Particle) console.log("The colliding object is a ball");
                             /** Calculate total kinetic energy in X direction
                             let KinX:number = 0.5*Math.pow(this.velX,2) + 0.5*Math.pow(allBalls[i].velX,2) */
                             //let diffAngle:number = Math.asin((allBalls[i].x-this.x)/ballDiff);
