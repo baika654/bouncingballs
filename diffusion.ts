@@ -1,5 +1,12 @@
 //import {Canvas} from "./app.js";
 
+enum Edge {
+    Right,
+    Down,
+    Left,
+    Top,
+  }
+
 /**
  * Canvas Wrapper Class
  */
@@ -44,6 +51,8 @@ interface Loopable {
     getSize(): number; 
     getVelX(): number;
     getVelY(): number;
+    getHeight(): number;
+    getWidth(): number;
     setXpos(x: number): void;
     setYpos(y: number): void;
     setSize(size: number): void; 
@@ -52,6 +61,105 @@ interface Loopable {
     setColor(color: string):void;
     getUUID(): string;
 }
+/**
+ * Box Wrapper Class
+ */
+
+class Box implements Loopable {
+    protected canvas: Canvas;
+    protected x: number;
+    protected y: number;
+    protected velX: number;
+    protected velY: number;
+    protected color: string;
+    protected size: number;
+    protected UUID: string;
+    protected height: number;
+    protected width: number;
+
+    constructor(canvas: Canvas, x: number, y: number,  color: string, height: number, width: number) {
+        this.canvas = canvas;
+        this.x = x;
+        this.y = y;
+        this.velX = 0;
+        this.velY = 0;
+        this.color = color;
+        this.size = 0;
+        this.UUID = this.createUUID();
+        this.height = height;
+        this.width = width;
+        
+    }
+
+    createUUID(): string {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+          var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+          return v.toString(16);
+        });
+    }
+
+    public draw(): void {
+        let context = this.canvas.getContext();
+
+        context.beginPath();
+        context.fillStyle = this.color;
+        context.rect(this.x, this.y, this.width, this.height);
+        //context.fill();
+        context.lineWidth = 7;
+        context.strokeStyle = 'black';
+        context.stroke();
+    }
+    
+    /** 
+     * This method does nothing. The box is not moving so it does not need to be updated.
+    */
+
+    public update(graphicObject:Loopable[]): void {}
+    public getXpos(): number {
+        return this.x;
+    }
+    public getYpos(): number {
+        return this.y;
+    }
+    public getSize(): number {
+        return 0;
+    } 
+    public getVelX(): number {
+        return 0;
+    }
+    public getVelY(): number {
+        return 0;
+    }
+    public getHeight(): number {
+        return this.height;
+    }
+    public getWidth(): number {
+        return this.width;
+    }
+    public setXpos(x: number): void {
+        this.x =x;
+    }
+    public setYpos(y: number): void {
+        this.y = y;
+    }
+    public setSize(size: number): void {
+        this.size  = size;
+    }
+    public setVelX(velX: number): void {
+        this.velX = velX;
+    }
+    public setVelY(velY: number): void {
+        this.velY = velY;
+    }
+    public setColor(color: string):void {
+        this.color = color;
+    }
+    public getUUID(): string {
+        return this.UUID;
+    }
+
+}
+
 
 /**
  * Particle Wrapper Class
@@ -134,6 +242,12 @@ class Particle implements Loopable {
     public getUUID(): string {
         return this.UUID;
     }
+    public getHeight(): number {
+        return this.size*2;
+    }
+    public getWidth(): number {
+        return this.size*2;
+    }
 
     public draw(): void {
         let context = this.canvas.getContext();
@@ -147,6 +261,7 @@ class Particle implements Loopable {
     public update(graphicObject:Loopable[]): void {
         for (let i=0; i<graphicObject.length; i++) {
             if (this.UUID!==graphicObject[i].getUUID()) {
+                if (graphicObject[i] instanceof Particle) {
                     let ballDiff = Math.sqrt(Math.pow(this.x-graphicObject[i].getXpos(),2)+Math.pow(this.y-graphicObject[i].getYpos(),2));
                     
                     if (ballDiff<(this.size+graphicObject[i].getSize())) {
@@ -182,6 +297,55 @@ class Particle implements Loopable {
                            
                            
                     }
+                } else {
+                    // This section deals with box-particle interactions
+                    let testX:number = this.x;
+                    let testY:number = this.y;
+
+                    
+                    let boxEdge:Edge = Edge.Left;
+                    // which edge is closest?
+                    if (this.x < graphicObject[i].getXpos()) {
+                        testX = graphicObject[i].getXpos();      // test left edge
+                        boxEdge = Edge.Left;
+                    }   else if (this.x > graphicObject[i].getXpos()+graphicObject[i].getWidth()) {
+                        testX = graphicObject[i].getXpos()+graphicObject[i].getWidth();   // right edge
+                        boxEdge = Edge.Right;
+                    }
+
+                    if (this.y < graphicObject[i].getYpos()) {
+                        testY = graphicObject[i].getYpos();      // top edge
+                        boxEdge = Edge.Top;
+                    } else if (this.y > graphicObject[i].getYpos()+graphicObject[i].getHeight()) {
+                        testY = graphicObject[i].getYpos()+graphicObject[i].getHeight();   // bottom edge
+                        boxEdge = Edge.Down;
+                    }
+
+                    // get distance from closest edges
+                    let distX:number  = this.x-testX;
+                    let distY:number  = this.y-testY;
+                    let distance:number = Math.sqrt( (distX*distX) + (distY*distY) );
+
+                    if (distance <= this.size) {
+                        // Collision detected for single particle
+                        let context = this.canvas.getContext();
+
+                        context.beginPath();
+                        context.fillStyle = 'rgb(255,0,0)';
+                        context.rect(graphicObject[i].getXpos(), graphicObject[i].getYpos(), graphicObject[i].getWidth(), graphicObject[i].getHeight());
+                        context.fill();
+                        if ((boxEdge==Edge.Top)||(boxEdge==Edge.Down)) this.setVelY(-this.getVelY());
+                        if ((boxEdge==Edge.Left)||(boxEdge==Edge.Right)) this.setVelX(-this.getVelX());
+                      } else {
+                        // No collision detect for single particle  
+                        let context = this.canvas.getContext();
+
+                        context.beginPath();
+                        context.fillStyle = 'rgb(255,255,255)';
+                        context.rect(graphicObject[i].getXpos(), graphicObject[i].getYpos(), graphicObject[i].getWidth(), graphicObject[i].getHeight());
+                        context.fill();
+                      }
+                }    
             }
                 
         }
@@ -259,12 +423,19 @@ class DrawingObjectGenerator {
             if (this.mode==1) this.adjustColor(particle);
             this.add(particle);
         }
+        let boxCount:number = 3;
+        let boxHeight:number= (this.canvas.getHeight()-((boxCount-1)*150))/boxCount;
+        for(let i = 0; i< boxCount; i++) {
+            let yOffset:number = i*(boxHeight + 150)
+            let membraneBox = new Box(this.canvas, (this.canvas.getWidth()/2)-50, yOffset, 'rgb(0,0,0)', boxHeight, 100);
+            this.add(membraneBox);
+        }
 
         return this;
     }
 
-    protected add(particle: Particle): void {
-        this.drawingobjects.push(particle);
+    protected add(loopable: Loopable): void {
+        this.drawingobjects.push(loopable);
     }
 
     public adjustColor(particle:Particle) {

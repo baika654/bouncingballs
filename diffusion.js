@@ -1,5 +1,12 @@
 "use strict";
 //import {Canvas} from "./app.js";
+var Edge;
+(function (Edge) {
+    Edge[Edge["Right"] = 0] = "Right";
+    Edge[Edge["Down"] = 1] = "Down";
+    Edge[Edge["Left"] = 2] = "Left";
+    Edge[Edge["Top"] = 3] = "Top";
+})(Edge || (Edge = {}));
 /**
  * Canvas Wrapper Class
  */
@@ -26,6 +33,85 @@ class Canvas {
     resizeCanvas() {
         this.canvas.width = document.body.clientWidth;
         this.canvas.height = document.body.clientHeight;
+    }
+}
+/**
+ * Box Wrapper Class
+ */
+class Box {
+    constructor(canvas, x, y, color, height, width) {
+        this.canvas = canvas;
+        this.x = x;
+        this.y = y;
+        this.velX = 0;
+        this.velY = 0;
+        this.color = color;
+        this.size = 0;
+        this.UUID = this.createUUID();
+        this.height = height;
+        this.width = width;
+    }
+    createUUID() {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+            var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
+        });
+    }
+    draw() {
+        let context = this.canvas.getContext();
+        context.beginPath();
+        context.fillStyle = this.color;
+        context.rect(this.x, this.y, this.width, this.height);
+        //context.fill();
+        context.lineWidth = 7;
+        context.strokeStyle = 'black';
+        context.stroke();
+    }
+    /**
+     * This method does nothing. The box is not moving so it does not need to be updated.
+    */
+    update(graphicObject) { }
+    getXpos() {
+        return this.x;
+    }
+    getYpos() {
+        return this.y;
+    }
+    getSize() {
+        return 0;
+    }
+    getVelX() {
+        return 0;
+    }
+    getVelY() {
+        return 0;
+    }
+    getHeight() {
+        return this.height;
+    }
+    getWidth() {
+        return this.width;
+    }
+    setXpos(x) {
+        this.x = x;
+    }
+    setYpos(y) {
+        this.y = y;
+    }
+    setSize(size) {
+        this.size = size;
+    }
+    setVelX(velX) {
+        this.velX = velX;
+    }
+    setVelY(velY) {
+        this.velY = velY;
+    }
+    setColor(color) {
+        this.color = color;
+    }
+    getUUID() {
+        return this.UUID;
     }
 }
 /**
@@ -86,6 +172,12 @@ class Particle {
     getUUID() {
         return this.UUID;
     }
+    getHeight() {
+        return this.size * 2;
+    }
+    getWidth() {
+        return this.size * 2;
+    }
     draw() {
         let context = this.canvas.getContext();
         context.beginPath();
@@ -96,33 +188,82 @@ class Particle {
     update(graphicObject) {
         for (let i = 0; i < graphicObject.length; i++) {
             if (this.UUID !== graphicObject[i].getUUID()) {
-                let ballDiff = Math.sqrt(Math.pow(this.x - graphicObject[i].getXpos(), 2) + Math.pow(this.y - graphicObject[i].getYpos(), 2));
-                if (ballDiff < (this.size + graphicObject[i].getSize())) {
-                    if (graphicObject[i] instanceof Particle)
-                        console.log("The colliding object is a ball");
-                    /** Calculate total kinetic energy in X direction
-                    let KinX:number = 0.5*Math.pow(this.velX,2) + 0.5*Math.pow(allBalls[i].velX,2) */
-                    //let diffAngle:number = Math.asin((allBalls[i].x-this.x)/ballDiff);
-                    let diffAngle2 = Math.atan2((graphicObject[i].getXpos() - this.x), (graphicObject[i].getYpos() - this.y));
-                    //console.log("diffAngle = ", diffAngle, "diffAngle2 = ", diffAngle2, "X1 vector:" , (this.velX>0 ? '+':'-'), " Y1 vector:", (this.velY>0 ? '+':'-'), "X2 vector:" ,(allBalls[i].velX>0 ? '+':'-'), " Y2 vector:",(allBalls[i].velY>0 ? '+':'-'));
-                    let dx = this.x - graphicObject[i].getXpos();
-                    let dy = this.y - graphicObject[i].getYpos();
-                    let normalX = dx / ballDiff;
-                    let normalY = dy / ballDiff;
-                    let midpointX = (graphicObject[i].getXpos() + this.x) / 2;
-                    let midpointY = (graphicObject[i].getYpos() + this.y) / 2;
-                    graphicObject[i].setXpos(midpointX - normalX * graphicObject[i].getSize());
-                    graphicObject[i].setYpos(midpointY - normalY * graphicObject[i].getSize());
-                    this.x = midpointX + normalX * this.size;
-                    this.y = (midpointY + normalY * this.size);
-                    let dVector = (graphicObject[i].getVelX() - this.velX) * normalX;
-                    dVector += (graphicObject[i].getVelY() - this.velY) * normalY;
-                    let dvx = dVector * normalX;
-                    let dvy = dVector * normalY;
-                    graphicObject[i].setVelX(graphicObject[i].getVelX() - dvx);
-                    graphicObject[i].setVelY(graphicObject[i].getVelY() - dvy);
-                    this.velX = this.velX + dvx;
-                    this.velY = this.velY + dvy;
+                if (graphicObject[i] instanceof Particle) {
+                    let ballDiff = Math.sqrt(Math.pow(this.x - graphicObject[i].getXpos(), 2) + Math.pow(this.y - graphicObject[i].getYpos(), 2));
+                    if (ballDiff < (this.size + graphicObject[i].getSize())) {
+                        if (graphicObject[i] instanceof Particle)
+                            console.log("The colliding object is a ball");
+                        /** Calculate total kinetic energy in X direction
+                        let KinX:number = 0.5*Math.pow(this.velX,2) + 0.5*Math.pow(allBalls[i].velX,2) */
+                        //let diffAngle:number = Math.asin((allBalls[i].x-this.x)/ballDiff);
+                        let diffAngle2 = Math.atan2((graphicObject[i].getXpos() - this.x), (graphicObject[i].getYpos() - this.y));
+                        //console.log("diffAngle = ", diffAngle, "diffAngle2 = ", diffAngle2, "X1 vector:" , (this.velX>0 ? '+':'-'), " Y1 vector:", (this.velY>0 ? '+':'-'), "X2 vector:" ,(allBalls[i].velX>0 ? '+':'-'), " Y2 vector:",(allBalls[i].velY>0 ? '+':'-'));
+                        let dx = this.x - graphicObject[i].getXpos();
+                        let dy = this.y - graphicObject[i].getYpos();
+                        let normalX = dx / ballDiff;
+                        let normalY = dy / ballDiff;
+                        let midpointX = (graphicObject[i].getXpos() + this.x) / 2;
+                        let midpointY = (graphicObject[i].getYpos() + this.y) / 2;
+                        graphicObject[i].setXpos(midpointX - normalX * graphicObject[i].getSize());
+                        graphicObject[i].setYpos(midpointY - normalY * graphicObject[i].getSize());
+                        this.x = midpointX + normalX * this.size;
+                        this.y = (midpointY + normalY * this.size);
+                        let dVector = (graphicObject[i].getVelX() - this.velX) * normalX;
+                        dVector += (graphicObject[i].getVelY() - this.velY) * normalY;
+                        let dvx = dVector * normalX;
+                        let dvy = dVector * normalY;
+                        graphicObject[i].setVelX(graphicObject[i].getVelX() - dvx);
+                        graphicObject[i].setVelY(graphicObject[i].getVelY() - dvy);
+                        this.velX = this.velX + dvx;
+                        this.velY = this.velY + dvy;
+                    }
+                }
+                else {
+                    // This section deals with box-particle interactions
+                    let testX = this.x;
+                    let testY = this.y;
+                    let boxEdge = Edge.Left;
+                    // which edge is closest?
+                    if (this.x < graphicObject[i].getXpos()) {
+                        testX = graphicObject[i].getXpos(); // test left edge
+                        boxEdge = Edge.Left;
+                    }
+                    else if (this.x > graphicObject[i].getXpos() + graphicObject[i].getWidth()) {
+                        testX = graphicObject[i].getXpos() + graphicObject[i].getWidth(); // right edge
+                        boxEdge = Edge.Right;
+                    }
+                    if (this.y < graphicObject[i].getYpos()) {
+                        testY = graphicObject[i].getYpos(); // top edge
+                        boxEdge = Edge.Top;
+                    }
+                    else if (this.y > graphicObject[i].getYpos() + graphicObject[i].getHeight()) {
+                        testY = graphicObject[i].getYpos() + graphicObject[i].getHeight(); // bottom edge
+                        boxEdge = Edge.Down;
+                    }
+                    // get distance from closest edges
+                    let distX = this.x - testX;
+                    let distY = this.y - testY;
+                    let distance = Math.sqrt((distX * distX) + (distY * distY));
+                    if (distance <= this.size) {
+                        // Collision detected for single particle
+                        let context = this.canvas.getContext();
+                        context.beginPath();
+                        context.fillStyle = 'rgb(255,0,0)';
+                        context.rect(graphicObject[i].getXpos(), graphicObject[i].getYpos(), graphicObject[i].getWidth(), graphicObject[i].getHeight());
+                        context.fill();
+                        if ((boxEdge == Edge.Top) || (boxEdge == Edge.Down))
+                            this.setVelY(-this.getVelY());
+                        if ((boxEdge == Edge.Left) || (boxEdge == Edge.Right))
+                            this.setVelX(-this.getVelX());
+                    }
+                    else {
+                        // No collision detect for single particle  
+                        let context = this.canvas.getContext();
+                        context.beginPath();
+                        context.fillStyle = 'rgb(255,255,255)';
+                        context.rect(graphicObject[i].getXpos(), graphicObject[i].getYpos(), graphicObject[i].getWidth(), graphicObject[i].getHeight());
+                        context.fill();
+                    }
                 }
             }
         }
@@ -179,10 +320,17 @@ class DrawingObjectGenerator {
                 this.adjustColor(particle);
             this.add(particle);
         }
+        let boxCount = 3;
+        let boxHeight = (this.canvas.getHeight() - ((boxCount - 1) * 150)) / boxCount;
+        for (let i = 0; i < boxCount; i++) {
+            let yOffset = i * (boxHeight + 150);
+            let membraneBox = new Box(this.canvas, (this.canvas.getWidth() / 2) - 50, yOffset, 'rgb(0,0,0)', boxHeight, 100);
+            this.add(membraneBox);
+        }
         return this;
     }
-    add(particle) {
-        this.drawingobjects.push(particle);
+    add(loopable) {
+        this.drawingobjects.push(loopable);
     }
     adjustColor(particle) {
         if ((particle.getXpos() < (this.canvas.getWidth() / 2)) && (particle.getYpos() < (this.canvas.getHeight() / 2))) {
