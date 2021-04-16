@@ -1,12 +1,15 @@
 "use strict";
 //import {Canvas} from "./app.js";
-var Edge;
-(function (Edge) {
-    Edge[Edge["Right"] = 0] = "Right";
-    Edge[Edge["Down"] = 1] = "Down";
-    Edge[Edge["Left"] = 2] = "Left";
-    Edge[Edge["Top"] = 3] = "Top";
-})(Edge || (Edge = {}));
+var HorizontalEdge;
+(function (HorizontalEdge) {
+    HorizontalEdge[HorizontalEdge["Down"] = 0] = "Down";
+    HorizontalEdge[HorizontalEdge["Top"] = 1] = "Top";
+})(HorizontalEdge || (HorizontalEdge = {}));
+var VerticalEdge;
+(function (VerticalEdge) {
+    VerticalEdge[VerticalEdge["Right"] = 0] = "Right";
+    VerticalEdge[VerticalEdge["Left"] = 1] = "Left";
+})(VerticalEdge || (VerticalEdge = {}));
 /**
  * Canvas Wrapper Class
  */
@@ -222,23 +225,24 @@ class Particle {
                     // This section deals with box-particle interactions
                     let testX = this.x;
                     let testY = this.y;
-                    let boxEdge = Edge.Left;
+                    let boxVerticalEdge = VerticalEdge.Left;
+                    let boxHorizontalEdge = HorizontalEdge.Top;
                     // which edge is closest?
                     if (this.x < graphicObject[i].getXpos()) {
                         testX = graphicObject[i].getXpos(); // test left edge
-                        boxEdge = Edge.Left;
+                        boxVerticalEdge = VerticalEdge.Left;
                     }
                     else if (this.x > graphicObject[i].getXpos() + graphicObject[i].getWidth()) {
                         testX = graphicObject[i].getXpos() + graphicObject[i].getWidth(); // right edge
-                        boxEdge = Edge.Right;
+                        boxVerticalEdge = VerticalEdge.Right;
                     }
                     if (this.y < graphicObject[i].getYpos()) {
                         testY = graphicObject[i].getYpos(); // top edge
-                        boxEdge = Edge.Top;
+                        boxHorizontalEdge = HorizontalEdge.Top;
                     }
                     else if (this.y > graphicObject[i].getYpos() + graphicObject[i].getHeight()) {
                         testY = graphicObject[i].getYpos() + graphicObject[i].getHeight(); // bottom edge
-                        boxEdge = Edge.Down;
+                        boxHorizontalEdge = HorizontalEdge.Down;
                     }
                     // get distance from closest edges
                     let distX = this.x - testX;
@@ -251,10 +255,172 @@ class Particle {
                         context.fillStyle = 'rgb(255,0,0)';
                         context.rect(graphicObject[i].getXpos(), graphicObject[i].getYpos(), graphicObject[i].getWidth(), graphicObject[i].getHeight());
                         context.fill();
-                        if ((boxEdge == Edge.Top) || (boxEdge == Edge.Down))
+                        //if ((Math.abs(this.y-graphicObject[i].getYpos())<this.getSize())&&(Math.abs(this.x-graphicObject[i].getXpos())<this.getSize())) {
+                        if ((boxHorizontalEdge == HorizontalEdge.Top) && (boxVerticalEdge == VerticalEdge.Left)) {
+                            console.log(Math.atan2(this.y - graphicObject[i].getYpos(), this.x - graphicObject[i].getXpos()) + " X:" + (this.x - graphicObject[i].getXpos()) + " Y:" + (this.y - graphicObject[i].getYpos()));
+                            //if ((Math.abs(this.y-graphicObject[i].getYpos())<this.getSize())&&(Math.abs(this.x-graphicObject[i].getXpos())<this.getSize())) {
+                            if (Math.abs(this.x - graphicObject[i].getXpos()) > Math.abs(this.y - graphicObject[i].getYpos())) {
+                                this.setVelX(-this.getVelX());
+                                // Do a quick check for validity.
+                                if (Math.sqrt(Math.pow(((this.x + this.getVelX()) - graphicObject[i].getXpos()), 2) + Math.pow(((this.y + this.getVelY()) - graphicObject[i].getYpos()), 2)) < this.getSize()) {
+                                    console.log("Cannot bounce out");
+                                    let xAdjust = Math.sqrt(Math.pow((this.getSize() * 1.02), 2) - Math.pow(((this.y + this.getVelY()) - graphicObject[i].getYpos()), 2)) - Math.abs((this.x + this.getVelX()) - graphicObject[i].getXpos());
+                                    if (this.getVelX() > 0) {
+                                        this.setXpos((this.getXpos() + xAdjust));
+                                    }
+                                    else {
+                                        this.setXpos((this.getXpos() - xAdjust));
+                                    }
+                                }
+                            }
+                            else {
+                                this.setVelY(-this.getVelY());
+                                // Do a quick check for validity.
+                                if (Math.sqrt(Math.pow(((this.x + this.getVelX()) - graphicObject[i].getXpos()), 2) + Math.pow(((this.y + this.getVelY()) - graphicObject[i].getYpos()), 2)) < this.getSize()) {
+                                    console.log("Cannot bounce out");
+                                    let yAdjust = Math.sqrt(Math.pow((this.getSize() * 1.02), 2) - Math.pow(((this.x + this.getVelX()) - graphicObject[i].getXpos()), 2)) - Math.abs((this.y + this.getVelY()) - graphicObject[i].getYpos());
+                                    if (this.getVelY() > 0) {
+                                        this.setYpos((this.getYpos() + yAdjust));
+                                    }
+                                    else {
+                                        this.setYpos((this.getYpos() - yAdjust));
+                                    }
+                                }
+                            }
+                            //}
+                        }
+                        if ((boxHorizontalEdge == HorizontalEdge.Top) && (boxVerticalEdge == VerticalEdge.Right)) {
+                            console.log(Math.atan2(this.y - graphicObject[i].getYpos(), this.x - graphicObject[i].getXpos()) + " X:" + (this.x - (graphicObject[i].getXpos() + graphicObject[i].getWidth())) + " Y:" + (this.y - graphicObject[i].getYpos()));
+                            if ((Math.abs(this.y - graphicObject[i].getYpos()) < this.getSize()) && (Math.abs(this.x - (graphicObject[i].getXpos() + graphicObject[i].getWidth())) < this.getSize())) {
+                                if (Math.abs(this.x - (graphicObject[i].getXpos() + graphicObject[i].getWidth())) > Math.abs(this.y - graphicObject[i].getYpos())) {
+                                    this.setVelX(-this.getVelX());
+                                    // Do a quick check for validity.
+                                    console.log("Doing a test for Validity. (TOP/RIGHT)");
+                                    if (Math.sqrt(Math.pow(((this.x + this.getVelX()) - (graphicObject[i].getXpos() + graphicObject[i].getWidth())), 2) + Math.pow(((this.y + this.getVelY()) - (graphicObject[i].getYpos() + graphicObject[i].getHeight())), 2)) < this.getSize()) {
+                                        console.log("Cannot bounce out");
+                                        console.log("Adjusting X value");
+                                        let xAdjust = Math.sqrt(Math.pow((this.getSize() * 1.02), 2) - Math.pow(((this.y + this.getVelY()) - (graphicObject[i].getYpos() + graphicObject[i].getHeight())), 2)) - Math.abs((this.x + this.getVelX()) - (graphicObject[i].getXpos() + graphicObject[i].getWidth()));
+                                        if (this.getVelX() > 0) {
+                                            this.setXpos((this.getXpos() + xAdjust));
+                                        }
+                                        else {
+                                            this.setXpos((this.getXpos() - xAdjust));
+                                        }
+                                    }
+                                }
+                                else {
+                                    this.setVelY(-this.getVelY());
+                                    // Do a quick check for validity.
+                                    console.log("Doing a test for Validity. (TOP/RIGHT)");
+                                    if (Math.sqrt(Math.pow(((this.x + this.getVelX()) - graphicObject[i].getXpos()), 2) + Math.pow(((this.y + this.getVelY()) - graphicObject[i].getYpos()), 2)) < this.getSize()) {
+                                        console.log("Cannot bounce out");
+                                        console.log("Adjusting Y value");
+                                        let yAdjust = Math.sqrt(Math.pow((this.getSize() * 1.02), 2) - Math.pow(((this.x + this.getVelX()) - graphicObject[i].getXpos()), 2)) - Math.abs((this.y + this.getVelY()) - graphicObject[i].getYpos());
+                                        if (this.getVelY() > 0) {
+                                            this.setYpos((this.getYpos() + yAdjust));
+                                        }
+                                        else {
+                                            this.setYpos((this.getYpos() - yAdjust));
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        if ((boxHorizontalEdge == HorizontalEdge.Down) && (boxVerticalEdge == VerticalEdge.Left)) {
+                            console.log(Math.atan2(this.y - graphicObject[i].getYpos(), this.x - graphicObject[i].getXpos()) + " X:" + (this.x - graphicObject[i].getXpos()) + " Y:" + (this.y - (graphicObject[i].getYpos() + graphicObject[i].getHeight())));
+                            if ((Math.abs(this.y - (graphicObject[i].getYpos() + graphicObject[i].getHeight())) < this.getSize()) && (Math.abs(this.x - graphicObject[i].getXpos()) < this.getSize())) {
+                                if (Math.abs(this.x - graphicObject[i].getXpos()) > Math.abs(this.y - (graphicObject[i].getYpos() + graphicObject[i].getHeight()))) {
+                                    this.setVelX(-this.getVelX());
+                                    // Do a quick check for validity.
+                                    console.log("Doing a test for Validity. (DOWN/LEFT)");
+                                    if (Math.sqrt(Math.pow(((this.x + this.getVelX()) - graphicObject[i].getXpos()), 2) + Math.pow(((this.y + this.getVelY()) - graphicObject[i].getYpos()), 2)) < this.getSize()) {
+                                        console.log("Cannot bounce out");
+                                        console.log("Adjusting X value");
+                                        let xAdjust = Math.sqrt(Math.pow((this.getSize() * 1.02), 2) - Math.pow(((this.y + this.getVelY()) - graphicObject[i].getYpos()), 2)) - Math.abs((this.x + this.getVelX()) - graphicObject[i].getXpos());
+                                        if (this.getVelX() > 0) {
+                                            this.setXpos((this.getXpos() + xAdjust));
+                                        }
+                                        else {
+                                            this.setXpos((this.getXpos() - xAdjust));
+                                        }
+                                    }
+                                }
+                                else {
+                                    this.setVelY(-this.getVelY());
+                                    console.log("Doing a test for Validity. (DOWN/LEFT)");
+                                    if (Math.sqrt(Math.pow(((this.x + this.getVelX()) - (graphicObject[i].getXpos() + graphicObject[i].getWidth())), 2) + Math.pow(((this.y + this.getVelY()) - (graphicObject[i].getYpos() + graphicObject[i].getHeight())), 2)) < this.getSize()) {
+                                        console.log("Cannot bounce out");
+                                        console.log("Adjusting Y value");
+                                        let yAdjust = Math.sqrt(Math.pow((this.getSize() * 1.02), 2) - Math.pow(((this.x + this.getVelX()) - (graphicObject[i].getXpos() + graphicObject[i].getWidth())), 2)) - Math.abs((this.y + this.getVelY()) - (graphicObject[i].getYpos() + graphicObject[i].getHeight()));
+                                        if (this.getVelY() > 0) {
+                                            this.setYpos((this.getYpos() + yAdjust));
+                                        }
+                                        else {
+                                            this.setYpos((this.getYpos() - yAdjust));
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        if ((boxHorizontalEdge == HorizontalEdge.Down) && (boxVerticalEdge == VerticalEdge.Right)) {
+                            console.log(Math.atan2(this.y - graphicObject[i].getYpos(), this.x - graphicObject[i].getXpos()) + " X:" + (this.x - (graphicObject[i].getXpos() + graphicObject[i].getWidth())) + " Y:" + (this.y - (graphicObject[i].getYpos() + graphicObject[i].getHeight())));
+                            if ((Math.abs(this.y - (graphicObject[i].getYpos() + graphicObject[i].getHeight())) < this.getSize()) && (Math.abs(this.x - (graphicObject[i].getXpos() + graphicObject[i].getWidth())) < this.getSize())) {
+                                if (Math.abs(this.x - (graphicObject[i].getXpos() + graphicObject[i].getWidth())) > Math.abs(this.y - (graphicObject[i].getYpos() + graphicObject[i].getHeight()))) {
+                                    this.setVelX(-this.getVelX());
+                                    // Do a quick check for validity.
+                                    console.log("Doing a test for Validity. (DOWN/RIGHT)");
+                                    if (Math.sqrt(Math.pow(((this.x + this.getVelX()) - (graphicObject[i].getXpos() + graphicObject[i].getWidth())), 2) + Math.pow(((this.y + this.getVelY()) - (graphicObject[i].getYpos() + graphicObject[i].getHeight())), 2)) < this.getSize()) {
+                                        console.log("Cannot bounce out");
+                                        console.log("Adjusting X value");
+                                        let xAdjust = Math.sqrt(Math.pow((this.getSize() * 1.02), 2) - Math.pow(((this.y + this.getVelY()) - (graphicObject[i].getYpos() + graphicObject[i].getHeight())), 2)) - Math.abs((this.x + this.getVelX()) - (graphicObject[i].getXpos() + graphicObject[i].getWidth()));
+                                        if (this.getVelX() > 0) {
+                                            this.setXpos((this.getXpos() + xAdjust));
+                                        }
+                                        else {
+                                            this.setXpos((this.getXpos() - xAdjust));
+                                        }
+                                    }
+                                }
+                                else {
+                                    this.setVelY(-this.getVelY());
+                                    // Do a quick check for validity.
+                                    console.log("Doing a test for Validity. (DOWN/RIGHT)");
+                                    if (Math.sqrt(Math.pow(((this.x + this.getVelX()) - (graphicObject[i].getXpos() + graphicObject[i].getWidth())), 2) + Math.pow(((this.y + this.getVelY()) - (graphicObject[i].getYpos() + graphicObject[i].getHeight())), 2)) < this.getSize()) {
+                                        console.log("Cannot bounce out");
+                                        console.log("Adjusting Y value");
+                                        let yAdjust = Math.sqrt(Math.pow((this.getSize() * 1.02), 2) - Math.pow(((this.x + this.getVelX()) - (graphicObject[i].getXpos() + graphicObject[i].getWidth())), 2)) - Math.abs((this.y + this.getVelY()) - (graphicObject[i].getYpos() + graphicObject[i].getHeight()));
+                                        if (this.getVelY() > 0) {
+                                            this.setYpos((this.getYpos() + yAdjust));
+                                        }
+                                        else {
+                                            this.setYpos((this.getYpos() - yAdjust));
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        /** } else {
+                            if (Math.abs(this.x-graphicObject[i].getXpos())<this.getSize()) {
+                                this.setVelX(-this.getVelX());
+                            }
+                            if (Math.abs(this.x-(graphicObject[i].getXpos()+graphicObject[i].getWidth()))<this.getSize()) {
+                                this.setVelX(-this.getVelX());
+                            }
+                            if (Math.abs(this.y-graphicObject[i].getYpos())<this.getSize()) {
+                                this.setVelY(-this.getVelY());
+                            }
+                            if (Math.abs(this.y-(graphicObject[i].getYpos()+graphicObject[i].getHeight()))<this.getSize()) {
+                                this.setVelY(-this.getVelY());
+                            }
+                        } */
+                        /**if ((boxEdge==Edge.Top)||(boxEdge==Edge.Down)) {
                             this.setVelY(-this.getVelY());
-                        if ((boxEdge == Edge.Left) || (boxEdge == Edge.Right))
+                            console.log("Up/Down")
+                        }
+                        if ((boxEdge==Edge.Left)||(boxEdge==Edge.Right)) {
                             this.setVelX(-this.getVelX());
+                            console.log("Left/Right")
+                        } */
                     }
                     else {
                         // No collision detect for single particle  
@@ -315,7 +481,8 @@ class DrawingObjectGenerator {
             let velocity = this.getRandomVelocity();
             let size = 40; //this.getRandomSize();
             /** init a new particle */
-            let particle = new Particle(this.canvas, this.getRandomX(size), this.getRandomY(size), velocity, velocity, this.getRandomColor(), size);
+            //let particle = new Particle(this.canvas, this.getRandomX(size), this.getRandomY(size), velocity, velocity, this.getRandomColor(), size);
+            let particle = new Particle(this.canvas, 50, 50, 2.5, 2.0, this.getRandomColor(), size);
             if (this.mode == 1)
                 this.adjustColor(particle);
             this.add(particle);
@@ -363,7 +530,7 @@ class DrawingObjectGenerator {
 }
 function init2(mode) {
     let canvas = new Canvas("my-canvas");
-    let drawingObjectGenerator = new DrawingObjectGenerator(canvas, 120, 0, mode);
+    let drawingObjectGenerator = new DrawingObjectGenerator(canvas, 1, 0, mode);
     let loop = new Loop(canvas, drawingObjectGenerator.generate());
     loop.start();
 }
