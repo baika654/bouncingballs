@@ -3,11 +3,13 @@
 enum HorizontalEdge {
     Down,
     Top,
+    Middle
   }
 
   enum VerticalEdge {
     Right,
-    Left
+    Left,
+    Middle
   } 
 
 /**
@@ -254,11 +256,13 @@ class Particle implements Loopable {
 
     public draw(): void {
         let context = this.canvas.getContext();
-
-        context.beginPath();
+        let redBall = <HTMLImageElement> document.getElementById("RedBallImage");
+        context.drawImage(redBall, this.x-40, this.y-40, 80, 80);
+        
+        /**context.beginPath();
         context.fillStyle = this.color;
         context.arc(this.x, this.y, this.size, 0, 2 * Math.PI);
-        context.fill();
+        context.fill(); */
     }
 
     public update(graphicObject:Loopable[]): void {
@@ -306,8 +310,8 @@ class Particle implements Loopable {
                     let testY:number = this.y;
 
                     
-                    let boxVerticalEdge:VerticalEdge = VerticalEdge.Left;
-                    let boxHorizontalEdge:HorizontalEdge=HorizontalEdge.Top
+                    let boxVerticalEdge:VerticalEdge = VerticalEdge.Middle;
+                    let boxHorizontalEdge:HorizontalEdge=HorizontalEdge.Middle;
                     // which edge is closest?
                     if (this.x < graphicObject[i].getXpos()) {
                         testX = graphicObject[i].getXpos();      // test left edge
@@ -320,7 +324,7 @@ class Particle implements Loopable {
                     if (this.y < graphicObject[i].getYpos()) {
                         testY = graphicObject[i].getYpos();      // top edge
                         boxHorizontalEdge = HorizontalEdge.Top;
-                    } else if (this.y > graphicObject[i].getYpos()+graphicObject[i].getHeight()) {
+                    } else if (this.y > (graphicObject[i].getYpos()+graphicObject[i].getHeight())) {
                         testY = graphicObject[i].getYpos()+graphicObject[i].getHeight();   // bottom edge
                         boxHorizontalEdge = HorizontalEdge.Down;
                     }
@@ -332,16 +336,74 @@ class Particle implements Loopable {
 
                     if (distance <= this.size) {
                         // Collision detected for single particle
-                        let context = this.canvas.getContext();
+                        /**let context = this.canvas.getContext();
 
                         context.beginPath();
                         context.fillStyle = 'rgb(255,0,0)';
                         context.rect(graphicObject[i].getXpos(), graphicObject[i].getYpos(), graphicObject[i].getWidth(), graphicObject[i].getHeight());
                         context.fill();
-                        //if ((Math.abs(this.y-graphicObject[i].getYpos())<this.getSize())&&(Math.abs(this.x-graphicObject[i].getXpos())<this.getSize())) {
+                        context.fillStyle = 'rgb(0,0,255)'; */
+
+                        if (Math.abs(distX)>Math.abs(distY))
+                        {
+                            // Vertical Collision
+                            /**context.beginPath();
+                            context.fillStyle = 'rgb(0,0,255)';
+                            context.rect(graphicObject[i].getXpos(), graphicObject[i].getYpos(), 10, graphicObject[i].getHeight());
+                            context.fill();
+                            context.beginPath();
+                            context.fillStyle = 'rgb(0,0,255)';
+                            context.rect(graphicObject[i].getXpos()+graphicObject[i].getWidth()-10, graphicObject[i].getYpos(), 10, graphicObject[i].getHeight());// Vertical Collision
+                            context.fill(); */
+                            // Check for stuckness
+                            let Xplus1:number = (this.getXpos()-this.getVelX());
+                            let Yplus1:number = (this.getYpos()+this.getVelY());
+                            let distXplus1:number  = Xplus1-testX;
+                            let distYplus1:number  = Yplus1-testY;
+                            let distanceplus1:number = Math.sqrt( (distXplus1*distXplus1) + (distYplus1*distYplus1) );
+                            // If stuck, adjust x value accordingly
+                            if (distanceplus1 < this.getSize()) {
+                                console.log("Ball is stuck in vertical sides. Adjusting");
+                                if (boxVerticalEdge==VerticalEdge.Left) {
+                                    this.setXpos(testX-this.getSize())
+                                }
+                                if (boxVerticalEdge==VerticalEdge.Right) {
+                                    this.setXpos(testX+this.getSize())
+                                }
+                            }
+                            this.setVelX(-this.getVelX());
+                        } else {
+                            // Horizonal Collision
+                            /**context.beginPath();
+                            context.fillStyle = 'rgb(0,0,255)';
+                            context.rect(graphicObject[i].getXpos(), graphicObject[i].getYpos(), graphicObject[i].getWidth(), 10);
+                            context.fill();
+                            context.beginPath();
+                            context.fillStyle = 'rgb(0,0,255)';
+                            context.rect(graphicObject[i].getXpos(), graphicObject[i].getYpos()+graphicObject[i].getHeight()-10, graphicObject[i].getWidth(), 10);// Vertical Collision
+                            context.fill(); */
+                            // Check for stuckness
+                            let Xplus1:number = (this.getXpos()+this.getVelX());
+                            let Yplus1:number = (this.getYpos()-this.getVelY());
+                            let distXplus1:number  = Xplus1-testX;
+                            let distYplus1:number  = Yplus1-testY;
+                            let distanceplus1:number = Math.sqrt( (distXplus1*distXplus1) + (distYplus1*distYplus1) );
+                            if (distanceplus1 < this.getSize()) {
+                                console.log("Ball is stuck in horizontal sides. Adjusting.");
+                                if (boxHorizontalEdge==HorizontalEdge.Top) {
+                                    this.setYpos(testY-this.getSize())
+                                }
+                                if (boxHorizontalEdge==HorizontalEdge.Down) {
+                                    this.setYpos(testY+this.getSize())
+                                }
+                            }
+                            this.setVelY(-this.getVelY());
+                        }
+
+                        /** //if ((Math.abs(this.y-graphicObject[i].getYpos())<this.getSize())&&(Math.abs(this.x-graphicObject[i].getXpos())<this.getSize())) {
                             if ((boxHorizontalEdge==HorizontalEdge.Top)&&(boxVerticalEdge==VerticalEdge.Left)) {
-                                console.log(Math.atan2(this.y-graphicObject[i].getYpos(), this.x-graphicObject[i].getXpos()) + " X:" + (this.x-graphicObject[i].getXpos()) + " Y:" + (this.y-graphicObject[i].getYpos()));
-                                //if ((Math.abs(this.y-graphicObject[i].getYpos())<this.getSize())&&(Math.abs(this.x-graphicObject[i].getXpos())<this.getSize())) {
+                                //console.log(Math.atan2(this.y-graphicObject[i].getYpos(), this.x-graphicObject[i].getXpos()) + " X:" + (this.x-graphicObject[i].getXpos()) + " Y:" + (this.y-graphicObject[i].getYpos()));
+                                if ((Math.abs(this.y-graphicObject[i].getYpos())<this.getSize())&&(Math.abs(this.x-graphicObject[i].getXpos())<this.getSize())) {
                                     if  (Math.abs(this.x-graphicObject[i].getXpos())>Math.abs(this.y-graphicObject[i].getYpos())) {
                                         this.setVelX(-this.getVelX());
                                         // Do a quick check for validity.
@@ -367,12 +429,22 @@ class Particle implements Loopable {
                                             }
                                         }
                                     }
-                                //}
+                                } else {
+                                    console.log("Not a corner case (TOP/LEFT)");
+                                    if (Math.abs(this.x-graphicObject[i].getXpos())<this.getSize()) {
+                                        console.log("Changing sign of X velocity");
+                                        this.setVelX(-this.getVelX());
+                                    }
+                                    if (Math.abs(this.y-graphicObject[i].getYpos())<this.getSize()) {
+                                        console.log("Changing sign of Y velocity");
+                                        this.setVelY(-this.getVelY());
+                                    }
+                                }
                             }
 
                             if ((boxHorizontalEdge==HorizontalEdge.Top)&&(boxVerticalEdge==VerticalEdge.Right)) {
                                 
-                                console.log(Math.atan2(this.y-graphicObject[i].getYpos(), this.x-graphicObject[i].getXpos()) + " X:" + (this.x-(graphicObject[i].getXpos()+graphicObject[i].getWidth())) + " Y:" + (this.y-graphicObject[i].getYpos()));
+                                //console.log(Math.atan2(this.y-graphicObject[i].getYpos(), this.x-graphicObject[i].getXpos()) + " X:" + (this.x-(graphicObject[i].getXpos()+graphicObject[i].getWidth())) + " Y:" + (this.y-graphicObject[i].getYpos()));
                                 if ((Math.abs(this.y-graphicObject[i].getYpos())<this.getSize())&&(Math.abs(this.x-(graphicObject[i].getXpos()+graphicObject[i].getWidth()))<this.getSize())) {
                                     if  (Math.abs(this.x-(graphicObject[i].getXpos()+graphicObject[i].getWidth()))>Math.abs(this.y-graphicObject[i].getYpos())) {
                                         this.setVelX(-this.getVelX());
@@ -404,11 +476,11 @@ class Particle implements Loopable {
                                         }
 
                                     }
-                                }
+                                } 
                             }
 
                             if ((boxHorizontalEdge==HorizontalEdge.Down)&&(boxVerticalEdge==VerticalEdge.Left)) {
-                                console.log(Math.atan2(this.y-graphicObject[i].getYpos(), this.x-graphicObject[i].getXpos()) + " X:" + (this.x-graphicObject[i].getXpos()) + " Y:" + (this.y-(graphicObject[i].getYpos()+graphicObject[i].getHeight())));
+                                //console.log(Math.atan2(this.y-graphicObject[i].getYpos(), this.x-graphicObject[i].getXpos()) + " X:" + (this.x-graphicObject[i].getXpos()) + " Y:" + (this.y-(graphicObject[i].getYpos()+graphicObject[i].getHeight())));
                                 if ((Math.abs(this.y-(graphicObject[i].getYpos()+graphicObject[i].getHeight()))<this.getSize())&&(Math.abs(this.x-graphicObject[i].getXpos())<this.getSize())) {
                                     if  (Math.abs(this.x-graphicObject[i].getXpos())>Math.abs(this.y-(graphicObject[i].getYpos()+graphicObject[i].getHeight()))) {
                                         this.setVelX(-this.getVelX());
@@ -438,10 +510,20 @@ class Particle implements Loopable {
                                             }
                                         }
                                     }
+                                } else {
+                                    console.log("Not a corner case");
+                                    if (Math.abs(this.x-graphicObject[i].getXpos())<this.getSize()) {
+                                        console.log("Changing sign of X velocity");
+                                        this.setVelX(-this.getVelX());
+                                    }
+                                    if (Math.abs(this.y-(graphicObject[i].getYpos()+graphicObject[i].getHeight()))<this.getSize()) {
+                                        console.log("Changing sign of Y velocity");
+                                        this.setVelY(-this.getVelY());
+                                    }
                                 }
                             }
                             if ((boxHorizontalEdge==HorizontalEdge.Down)&&(boxVerticalEdge==VerticalEdge.Right)) {
-                                console.log(Math.atan2(this.y-graphicObject[i].getYpos(), this.x-graphicObject[i].getXpos()) + " X:" + (this.x-(graphicObject[i].getXpos()+graphicObject[i].getWidth())) + " Y:" + (this.y-(graphicObject[i].getYpos()+graphicObject[i].getHeight())));
+                                //console.log(Math.atan2(this.y-graphicObject[i].getYpos(), this.x-graphicObject[i].getXpos()) + " X:" + (this.x-(graphicObject[i].getXpos()+graphicObject[i].getWidth())) + " Y:" + (this.y-(graphicObject[i].getYpos()+graphicObject[i].getHeight())));
                                 if ((Math.abs(this.y-(graphicObject[i].getYpos()+graphicObject[i].getHeight()))<this.getSize())&&(Math.abs(this.x-(graphicObject[i].getXpos()+graphicObject[i].getWidth()))<this.getSize())) {
                                     if  (Math.abs(this.x-(graphicObject[i].getXpos()+graphicObject[i].getWidth()))>Math.abs(this.y-(graphicObject[i].getYpos()+graphicObject[i].getHeight()))) {
                                         this.setVelX(-this.getVelX());
@@ -473,7 +555,7 @@ class Particle implements Loopable {
                                         }
                                     }
                                 }
-                            }
+                            } */
                         /** } else {
                             if (Math.abs(this.x-graphicObject[i].getXpos())<this.getSize()) {
                                 this.setVelX(-this.getVelX());
@@ -498,12 +580,12 @@ class Particle implements Loopable {
                         } */
                     } else {
                         // No collision detect for single particle  
-                        let context = this.canvas.getContext();
+                        /**let context = this.canvas.getContext();
 
                         context.beginPath();
                         context.fillStyle = 'rgb(255,255,255)';
                         context.rect(graphicObject[i].getXpos(), graphicObject[i].getYpos(), graphicObject[i].getWidth(), graphicObject[i].getHeight());
-                        context.fill();
+                        context.fill(); */
                     }
                 }    
             }
@@ -579,19 +661,20 @@ class DrawingObjectGenerator {
             let velocity: number = this.getRandomVelocity();
             let size: number = 40; //this.getRandomSize();
             /** init a new particle */
-            //let particle = new Particle(this.canvas, this.getRandomX(size), this.getRandomY(size), velocity, velocity, this.getRandomColor(), size);
-            let particle = new Particle(this.canvas, 50, 50, 2.5, 2.0, this.getRandomColor(), size);
-            if (this.mode==1) this.adjustColor(particle);
+            let particle = new Particle(this.canvas, this.getRandomX(size), this.getRandomY(size), velocity, velocity, this.getRandomColor(), size);
+            //let particle = new Particle(this.canvas, 50, 50, 2.5, 2.2, this.getRandomColor(), size);
+            if (this.mode>=1) this.adjustColor(particle, this.mode);
             this.add(particle);
         }
-        let boxCount:number = 3;
-        let boxHeight:number= (this.canvas.getHeight()-((boxCount-1)*150))/boxCount;
-        for(let i = 0; i< boxCount; i++) {
-            let yOffset:number = i*(boxHeight + 150)
-            let membraneBox = new Box(this.canvas, (this.canvas.getWidth()/2)-50, yOffset, 'rgb(0,0,0)', boxHeight, 100);
-            this.add(membraneBox);
+        if (this.mode==2) {
+            let boxCount:number = 3;
+            let boxHeight:number= (this.canvas.getHeight()-((boxCount-1)*150))/boxCount;
+            for(let i = 0; i< boxCount; i++) {
+                let yOffset:number = i*(boxHeight + 150)
+                let membraneBox = new Box(this.canvas, (this.canvas.getWidth()/2)-50, yOffset, 'rgb(0,0,0)', boxHeight, 100);
+                this.add(membraneBox);
+            }
         }
-
         return this;
     }
 
@@ -599,9 +682,16 @@ class DrawingObjectGenerator {
         this.drawingobjects.push(loopable);
     }
 
-    public adjustColor(particle:Particle) {
-        if ((particle.getXpos()<(this.canvas.getWidth()/2))&&(particle.getYpos()<(this.canvas.getHeight()/2))) {
-            particle.setColor('rgb(0,0,255)');
+    public adjustColor(particle:Particle, mode:number) {
+        if (mode==1) {
+            if ((particle.getXpos()<(this.canvas.getWidth()/2))&&(particle.getYpos()<(this.canvas.getHeight()/2))) {
+                particle.setColor('rgb(0,0,255)');
+            }
+        }
+        if (mode==2) {
+            if (particle.getXpos()<(this.canvas.getWidth()/2)) {
+                particle.setColor('rgb(0,0,255)');
+            }
         }
     }
     
@@ -638,7 +728,7 @@ class DrawingObjectGenerator {
 
 function init2(mode:number): void {
     let canvas = new Canvas("my-canvas");
-    let drawingObjectGenerator = new DrawingObjectGenerator(canvas, 1, 0, mode);
+    let drawingObjectGenerator = new DrawingObjectGenerator(canvas, 120, 0, mode);
     let loop = new Loop(canvas, drawingObjectGenerator.generate());
     loop.start();
 }
